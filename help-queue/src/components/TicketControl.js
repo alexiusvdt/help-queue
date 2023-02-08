@@ -6,8 +6,15 @@ class TicketControl extends React.Component {
   constructor(props){
     super(props);
     this.state = {
-      formVisibleOnPage: false
-    }
+      formVisibleOnPage: false,
+      mainTicketList: []
+    };
+  }
+  // this callback is passed under the param newTicket when we call props.onNewTicketCreation({names: names.value...}) 
+  handleAddingNewTicketToList = (newTicket) => {
+    const newMainTicketList = this.state.mainTicketList.concat(newTicket);
+    this.setState({mainTicketList: newMainTicketList,
+                    formVisibleOnPage: false });
   }
 
   handleClick = () => {
@@ -20,10 +27,10 @@ class TicketControl extends React.Component {
     let currentlyVisibleState = null;
     let buttonText = null;
     if (this.state.formVisibleOnPage) {
-      currentlyVisibleState = <NewTicketForm />
+      currentlyVisibleState = <NewTicketForm onNewTicketCreation = {this.handleAddingNewTicketToList} />
       buttonText = "Return to ticket list";
     } else {
-      currentlyVisibleState = <TicketList />
+      currentlyVisibleState = <TicketList ticketList = {this.state.mainTicketList}/>;
       buttonText = "Add ticket";
     }
     return (
