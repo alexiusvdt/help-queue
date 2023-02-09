@@ -1,13 +1,16 @@
 import React from "react";
 import NewTicketForm from "./NewTicketForm";
+import TicketDetail from "./TicketDetail";
 import TicketList from "./TicketList";
+import EditTicketForm from './EditTicketForm';
 
 class TicketControl extends React.Component {
   constructor(props){
     super(props);
     this.state = {
       formVisibleOnPage: false,
-      mainTicketList: []
+      mainTicketList: [],
+      selectedTicket: null
     };
   }
   // this callback is passed under the param newTicket when we call props.onNewTicketCreation({names: names.value...}) 
@@ -17,7 +20,45 @@ class TicketControl extends React.Component {
                     formVisibleOnPage: false });
   }
 
+  handleChangingSelectedTicket = (id) => {
+    //filter returns an array, so we need to specify the [0] element
+    const selectedTicket = this.state.mainTicketList.filter(ticket => ticket.id === id)[0];
+    this.setState({selectedTicket: selectedTicket});
+  }
+
+  handleDeletingTicket = (id) => {
+    const newMainTicketList = this.state.mainTicketList.filter(ticket => ticket.id !== id);
+    this.setState({
+      mainTicketList: newMainTicketList,
+      selectedTicket: null,
+      editing: false
+    });
+  }
+
+  handleEditingTicketInList = (ticketToEdit) => {
+    const editedMainTicketList = this.state.mainTicketList
+      .filter(ticket => ticket.id !== this.state.selectedTicket.id)
+      .concat(ticketToEdit);
+    this.setState({
+        mainTicketList: editedMainTicketList,
+        editing: false,
+        selectedTicket: null
+      });
+  }
+
+  handleEditClick = () => {
+    // console.log("HandleEditClick reached!")
+    this.setState({editing: true});
+  }
+
   handleClick = () => {
+    if (this.state.selectedTicket != null){
+      this.setState({
+        formVisibleOnPage: false,
+        selectedTicket: null,
+        editing: false
+      });  
+    } else {}
     this.setState(prevState => ({
       formVisibleOnPage: !prevState.formVisibleOnPage
     }));
@@ -26,11 +67,21 @@ class TicketControl extends React.Component {
   render() {
     let currentlyVisibleState = null;
     let buttonText = null;
-    if (this.state.formVisibleOnPage) {
+
+    if (this.state.editing) {
+      currentlyVisibleState = <EditTicketForm ticket = {this.state.selectedTicket} onEditTicket = {this.handleEditingTicketInList} />
+      buttonText = "return to ticket list"
+    }else if (this.state.selectedTicket != null) {
+      currentlyVisibleState = <TicketDetail
+       ticket = {this.state.selectedTicket} 
+       onClickingDelete = {this.handleDeletingTicket}
+       onClickingEdit = {this.handleEditClick} />
+      buttonText= "Return to ticket list"
+    } else if (this.state.formVisibleOnPage){
       currentlyVisibleState = <NewTicketForm onNewTicketCreation = {this.handleAddingNewTicketToList} />
       buttonText = "Return to ticket list";
     } else {
-      currentlyVisibleState = <TicketList ticketList = {this.state.mainTicketList}/>;
+      currentlyVisibleState = <TicketList ticketList = {this.state.mainTicketList} onNewTicketSelection={this.handleChangingSelectedTicket}/>;
       buttonText = "Add ticket";
     }
     return (
